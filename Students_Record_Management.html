@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>StudentHub — CRUD UI</title>
+  <!-- Bootstrap 5.3 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Bootstrap Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    /* ---------- DARK THEME & ANIMATIONS (Based on provided image) ---------- */
+    :root {
+      --bg-dark: #0b1120;          /* Very dark navy/slate */
+      --bg-card: #1e293b;          /* Slate 800 */
+      --bg-card-hover: #263348;    /* Slightly lighter slate */
+      --border-color: #334155;     /* Slate 700 */
+      --text-primary: #f8fafc;     /* Slate 50 */
+      --text-secondary: #94a3b8;   /* Slate 400 */
+      --accent-blue: #3b82f6;      /* Bright Blue */
+      --accent-purple: #8b5cf6;    /* Vibrant Purple */
+      --glow-blue: rgba(59, 130, 246, 0.5);
+      --glow-purple: rgba(139, 92, 246, 0.5);
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: var(--bg-dark);
+      color: var(--text-primary);
+      min-height: 100vh;
+      background-image: radial-gradient(circle at 15% 50%, rgba(59, 130, 246, 0.08) 0%, transparent 40%),
+                        radial-gradient(circle at 85% 30%, rgba(139, 92, 246, 0.08) 0%, transparent 40%);
+      background-attachment: fixed;
+    }
+
+    /* ---------- NAVBAR ---------- */
+    .navbar {
+      background: rgba(15, 23, 42, 0.8) !important;
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border-color);
+      animation: fadeInDown 0.6s ease;
+    }
+    .navbar-brand {
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      font-size: 1.35rem;
+      color: #fff !important;
+    }
+    .navbar-brand span { color: var(--accent-blue); }
+    .nav-link {
+      font-weight: 500;
+      color: var(--text-secondary) !important;
+      transition: color 0.25s ease, transform 0.25s ease;
+    }
+    .nav-link:hover, .nav-link.active {
+      color: #fff !important;
+      transform: translateY(-1px);
+    }
+
+    /* ---------- CARDS & CONTAINERS ---------- */
+    .card {
+      background-color: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.4);
+      transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+                  box-shadow 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+                  border-color 0.3s ease;
+      opacity: 0;
+      animation: fadeInUp 0.6s ease forwards;
+    }
+    .card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 30px -4px rgba(0, 0, 0, 0.6), 0 0 20px rgba(59, 130, 246, 0.15);
+      border-color: rgba(59, 130, 246, 0.4);
+    }
+    .card-header {
+      background-color: rgba(15, 23, 42, 0.4);
+      border-bottom: 1px solid var(--border-color);
+      border-radius: 16px 16px 0 0 !important;
+      font-weight: 600;
+      padding: 1rem 1.25rem;
+      color: var(--text-primary);
+    }
+    .card-body { padding: 1.25rem; }
+
+    /* Staggered animations */
+    .col-lg-2 .card:nth-child(1) { animation-delay: 0.10s; }
+    .col-lg-2 .card:nth-child(2) { animation-delay: 0.20s; }
+    .col-lg-2 .card:nth-child(3) { animation-delay: 0.30s; }
+    .col-lg-8 .card:nth-child(1) { animation-delay: 0.15s; }
+    .col-lg-8 .card:nth-child(2) { animation-delay: 0.30s; }
+    .col-lg-2:last-child .card:nth-child(1) { animation-delay: 0.20s; }
+    .col-lg-2:last-child .card:nth-child(2) { animation-delay: 0.35s; }
+    .col-lg-2:last-child .card:nth-child(3) { animation-delay: 0.50s; }
+
+    /* ---------- TEXT GRADIENTS ---------- */
+    .text-gradient {
+      background: linear-gradient(135deg, var(--accent-blue) 0%, var(--accent-purple) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* ---------- TABLE ---------- */
+    .table {
+      color: var(--text-secondary);
+      margin-bottom: 0;
+      font-size: 0.9rem;
+    }
+    .table > :not(caption) > * > * {
+      padding: 0.9rem 0.75rem;
+      vertical-align: middle;
+      background-color: transparent;
+      border-bottom-color: var(--border-color);
+    }
+    .table thead th {
+      font-weight: 600;
+      text-transform: uppercase;
+      font-size: 0.75rem;
+      letter-spacing: 0.8px;
+      color: var(--text-primary);
+      border-bottom: 2px solid var(--border-color) !important;
+    }
+    .table tbody tr {
+      transition: background-color 0.2s ease, transform 0.2s ease;
+    }
+    .table tbody tr:hover {
+      background-color: rgba(59, 130, 246, 0.05);
+      transform: scale(1.005);
+    }
+    .table tbody th { color: var(--text-primary); font-weight: 500; }
+
+    /* ---------- BADGES ---------- */
+    .badge {
+      font-weight: 500;
+      padding: 0.45em 0.8em;
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .badge.bg-success { background: rgba(16, 185, 129, 0.15) !important; color: #34d399 !important; border-color: rgba(16, 185, 129, 0.3); }
+    .badge.bg-secondary { background: rgba(148, 163, 184, 0.15) !important; color: #cbd5e1 !important; border-color: rgba(148, 163, 184, 0.3); }
+    .badge.bg-info { background: rgba(56, 189, 248, 0.15) !important; color: #38bdf8 !important; border-color: rgba(56, 189, 248, 0.3); }
+    .badge.bg-primary { background: rgba(59, 130, 246, 0.15) !important; color: #60a5fa !important; border-color: rgba(59, 130, 246, 0.3); }
+
+    /* ---------- BUTTONS ---------- */
+    .btn {
+      border-radius: 10px;
+      font-weight: 500;
+      transition: all 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+      padding: 0.5rem 1rem;
+    }
+    .btn:hover {
+      transform: translateY(-2px);
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent-blue) 0%, var(--accent-purple) 100%);
+      border: none;
+      color: #fff;
+    }
+    .btn-primary:hover {
+      box-shadow: 0 8px 20px -4px var(--glow-blue);
+      background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+    }
+    .btn-outline-info { border-color: #38bdf8; color: #38bdf8; }
+    .btn-outline-info:hover { background: #38bdf8; color: #0f172a; box-shadow: 0 0 15px rgba(56, 189, 248, 0.4); }
+    .btn-outline-warning { border-color: #fbbf24; color: #fbbf24; }
+    .btn-outline-warning:hover { background: #fbbf24; color: #0f172a; box-shadow: 0 0 15px rgba(251, 191, 36, 0.4); }
+    .btn-outline-danger { border-color: #f87171; color: #f87171; }
+    .btn-outline-danger:hover { background: #f87171; color: #0f172a; box-shadow: 0 0 15px rgba(248, 113, 113, 0.4); }
+    .btn-outline-secondary { border-color: var(--border-color); color: var(--text-secondary); }
+    .btn-outline-secondary:hover { background: var(--border-color); color: #fff; }
+    .btn-sm { padding: 0.35rem 0.7rem; font-size: 0.8rem; }
+    .btn i { margin-right: 4px; font-size: 1em; }
+
+    /* ---------- FORM CONTROLS ---------- */
+    .form-control, .form-select {
+      background-color: rgba(15, 23, 42, 0.6);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      color: var(--text-primary);
+      padding: 0.6rem 0.9rem;
+      font-size: 0.92rem;
+      transition: all 0.25s ease;
+    }
+    .form-control::placeholder { color: #64748b; }
+    .form-control:focus, .form-select:focus {
+      background-color: rgba(15, 23, 42, 0.9);
+      border-color: var(--accent-blue);
+      box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
+      color: #fff;
+    }
+    .form-select option { background-color: var(--bg-dark); color: #fff; }
+    .form-label {
+      font-weight: 500;
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      margin-bottom: 0.4rem;
+    }
+
+    /* ---------- SIDEBAR LINKS ---------- */
+    .list-group-item {
+      background: transparent;
+      border: none;
+      color: var(--text-secondary);
+      padding: 0.7rem 0;
+      font-size: 0.88rem;
+      transition: color 0.2s ease, padding-left 0.2s ease;
+    }
+    .list-group-item:hover {
+      color: var(--accent-blue);
+      padding-left: 6px;
+    }
+
+    /* ---------- ALERTS ---------- */
+    .alert {
+      border-radius: 12px;
+      border: 1px solid transparent;
+      font-size: 0.85rem;
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--text-secondary);
+    }
+    .alert-warning { border-color: rgba(251, 191, 36, 0.3); background: rgba(251, 191, 36, 0.05); color: #fcd34d; }
+    .alert-info { border-color: rgba(56, 189, 248, 0.3); background: rgba(56, 189, 248, 0.05); color: #7dd3fc; }
+
+    /* ---------- PAGINATION ---------- */
+    .page-link {
+      background-color: transparent;
+      border: 1px solid var(--border-color);
+      border-radius: 8px !important;
+      margin: 0 3px;
+      color: var(--text-secondary);
+      transition: all 0.2s ease;
+    }
+    .page-link:hover {
+      background-color: rgba(59, 130, 246, 0.1);
+      border-color: var(--accent-blue);
+      color: var(--accent-blue);
+    }
+    .page-item.active .page-link {
+      background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+      border: none;
+      color: #fff;
+    }
+    .page-item.disabled .page-link {
+      background-color: transparent;
+      border-color: var(--border-color);
+      color: #475569;
+    }
+
+    /* ---------- PROFILE AVATAR ---------- */
+    .avatar-circle {
+      width: 64px; height: 64px;
+      background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: #fff;
+      box-shadow: 0 0 20px rgba(139, 92, 246, 0.4);
+      margin-bottom: 0.75rem;
+    }
+
+    /* ---------- KEYFRAMES ---------- */
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeInDown {
+      from { opacity: 0; transform: translateY(-16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes slideInLeft {
+      from { opacity: 0; transform: translateX(-24px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+    @keyframes slideInRight {
+      from { opacity: 0; transform: translateX(24px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+
+    .animate-slide-left  { animation: slideInLeft 0.6s ease forwards; opacity: 0; }
+    .animate-slide-right { animation: slideInRight 0.6s ease forwards; opacity: 0; }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: var(--bg-dark); }
+    ::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--accent-blue); }
+
+    /* Responsive */
+    @media (max-width: 991.98px) {
+      .col-lg-2, .col-lg-8 { margin-bottom: 1rem; }
+      .card { border-radius: 12px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ========== NAVBAR ========== -->
+  <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="#">
+        <i class="bi bi-mortarboard-fill me-1" style="color: var(--accent-blue);"></i> Student<span>Hub</span>.
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav"
+              aria-controls="mainNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="mainNav">
+        <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+          <li class="nav-item"><a class="nav-link active" href="#">Dashboard</a></li>
+          <li class="nav-item"><a class="nav-link" href="#">Records</a></li>
+          <li class="nav-item"><a class="nav-link" href="#">Reports</a></li>
+          <li class="nav-item"><a class="nav-link" href="#">Settings</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ========== MAIN 2–8–2 GRID ========== -->
+  <div class="container-fluid mt-4">
+    <div class="row g-3">
+
+      <!-- ===== LEFT COLUMN (2) ===== -->
+      <aside class="col-12 col-lg-2">
+        <div class="card animate-slide-left">
+          <div class="card-body p-3">
+            <h6 class="card-title fw-bold mb-3" style="color: var(--text-primary);">
+              <i class="bi bi-folder2-open me-1 text-gradient"></i> Categories
+            </h6>
+            <ul class="list-group list-group-flush small">
+              <li class="list-group-item d-flex justify-content-between align-items-center">
+                All Students <span class="badge bg-primary rounded-pill">128</span>
+              </li>
+              <li class="list-group-item d-flex justify-content-between align-items-center">
+                Active <span class="badge bg-success rounded-pill">96</span>
+              </li>
+              <li class="list-group-item d-flex justify-content-between align-items-center">
+                Inactive <span class="badge bg-secondary rounded-pill">18</span>
+              </li>
+              <li class="list-group-item d-flex justify-content-between align-items-center">
+                Graduated <span class="badge bg-info rounded-pill">14</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="card mt-3">
+          <div class="card-body p-3">
+            <h6 class="card-title fw-bold mb-3" style="color: var(--text-primary);">
+              <i class="bi bi-funnel me-1 text-gradient"></i> Filters
+            </h6>
+            <div class="mb-3">
+              <label for="filterCourse" class="form-label small">Course</label>
+              <select id="filterCourse" class="form-select form-select-sm">
+                <option selected>All Courses</option>
+                <option>Computer Science</option>
+                <option>Business Admin</option>
+                <option>Engineering</option>
+                <option>Nursing</option>
+              </select>
+            </div>
+            <div class="mb-0">
+              <label for="filterYear" class="form-label small">Year Level</label>
+              <select id="filterYear" class="form-select form-select-sm">
+                <option selected>All Years</option>
+                <option>1st Year</option>
+                <option>2nd Year</option>
+                <option>3rd Year</option>
+                <option>4th Year</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="card mt-3">
+          <div class="card-body p-3">
+            <h6 class="card-title fw-bold mb-2" style="color: var(--text-primary);">
+              <i class="bi bi-question-circle me-1 text-gradient"></i> Help
+            </h6>
+            <p class="small mb-0" style="color: var(--text-secondary);">
+              Use <strong>Add Student</strong> to create a record. Click
+              <em>View</em>, <em>Edit</em>, or <em>Delete</em> to manage rows.
+            </p>
+          </div>
+        </div>
+      </aside>
+
+      <!-- ===== CENTER COLUMN (8) ===== -->
+      <main class="col-12 col-lg-8">
+
+        <!-- CRUD TABLE -->
+        <div class="card mb-4">
+          <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
+            <h5 class="mb-0 fw-bold" style="color: var(--text-primary);">
+              <i class="bi bi-people-fill me-2 text-gradient"></i>Student Records
+            </h5>
+            <button class="btn btn-primary btn-sm" type="button">
+              <i class="bi bi-plus-lg"></i> Add Student
+            </button>
+          </div>
+          <div class="card-body p-0">
+            <div class="table-responsive">
+              <table class="table table-dark table-hover align-middle mb-0">
+                <thead>
+                  <tr>
+                    <th scope="col">ID</th>
+                    <th scope="col">Full Name</th>
+                    <th scope="col">Course</th>
+                    <th scope="col">Year Level</th>
+                    <th scope="col">Status</th>
+                    <th scope="col" class="text-center">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <th scope="row">2026-001</th>
+                    <td>Maria Santos</td>
+                    <td>Computer Science</td>
+                    <td>3rd Year</td>
+                    <td><span class="badge bg-success">Active</span></td>
+                    <td class="text-center">
+                      <button class="btn btn-outline-info btn-sm me-1" type="button" title="View">
+                        <i class="bi bi-eye"></i>
+                      </button>
+                      <button class="btn btn-outline-warning btn-sm me-1" type="button" title="Edit">
+                        <i class="bi bi-pencil"></i>
+                      </button>
+                      <button class="btn btn-outline-danger btn-sm" type="button" title="Delete">
+                        <i class="bi bi-trash"></i>
+                      </button>
+                    </td>
+                  </tr>
+                  <tr>
+                    <th scope="row">2026-002</th>
+                    <td>James Reyes</td>
+                    <td>Business Admin</td>
+                    <td>2nd Year</td>
+                    <td><span class="badge bg-success">Active</span></td>
+                    <td class="text-center">
+                      <button class="btn btn-outline-info btn-sm me-1" type="button"><i class="bi bi-eye"></i></button>
+                      <button class="btn btn-outline-warning btn-sm me-1" type="button"><i class="bi bi-pencil"></i></button>
+                      <button class="btn btn-outline-danger btn-sm" type="button"><i class="bi bi-trash"></i></button>
+                    </td>
+                  </tr>
+                  <tr>
+                    <th scope="row">2026-003</th>
+                    <td>Angela Cruz</td>
+                    <td>Engineering</td>
+                    <td>4th Year</td>
+                    <td><span class="badge bg-info text-dark">Graduated</span></td>
+                    <td class="text-center">
+                      <button class="btn btn-outline-info btn-sm me-1" type="button"><i class="bi bi-eye"></i></button>
+                      <button class="btn btn-outline-warning btn-sm me-1" type="button"><i class="bi bi-pencil"></i></button>
+                      <button class="btn btn-outline-danger btn-sm" type="button"><i class="bi bi-trash"></i></button>
+                    </td>
+                  </tr>
+                  <tr>
+                    <th scope="row">2026-004</th>
+                    <td>Kevin Dela Rosa</td>
+                    <td>Nursing</td>
+                    <td>1st Year</td>
+                    <td><span class="badge bg-success">Active</span></td>
+                    <td class="text-center">
+                      <button class="btn btn-outline-info btn-sm me-1" type="button"><i class="bi bi-eye"></i></button>
+                      <button class="btn btn-outline-warning btn-sm me-1" type="button"><i class="bi bi-pencil"></i></button>
+                      <button class="btn btn-outline-danger btn-sm" type="button"><i class="bi bi-trash"></i></button>
+                    </td>
+                  </tr>
+                  <tr>
+                    <th scope="row">2026-005</th>
+                    <td>Sophia Garcia</td>
+                    <td>Computer Science</td>
+                    <td>2nd Year</td>
+                    <td><span class="badge bg-secondary">Inactive</span></td>
+                    <td class="text-center">
+                      <button class="btn btn-outline-info btn-sm me-1" type="button"><i class="bi bi-eye"></i></button>
+                      <button class="btn btn-outline-warning btn-sm me-1" type="button"><i class="bi bi-pencil"></i></button>
+                      <button class="btn btn-outline-danger btn-sm" type="button"><i class="bi bi-trash"></i></button>
+                    </td>
+                  </tr>
+                  <tr>
+                    <th scope="row">2026-006</th>
+                    <td>Daniel Lim</td>
+                    <td>Business Admin</td>
+                    <td>3rd Year</td>
+                    <td><span class="badge bg-success">Active</span></td>
+                    <td class="text-center">
+                      <button class="btn btn-outline-info btn-sm me-1" type="button"><i class="bi bi-eye"></i></button>
+                      <button class="btn btn-outline-warning btn-sm me-1" type="button"><i class="bi bi-pencil"></i></button>
+                      <button class="btn btn-outline-danger btn-sm" type="button"><i class="bi bi-trash"></i></button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="card-footer d-flex flex-wrap justify-content-between align-items-center gap-2" style="background: rgba(15, 23, 42, 0.4); border-top: 1px solid var(--border-color);">
+            <span class="small" style="color: var(--text-secondary);">Showing 6 of 128 records</span>
+            <nav aria-label="Table pagination">
+              <ul class="pagination pagination-sm mb-0">
+                <li class="page-item disabled"><a class="page-link" href="#">Previous</a></li>
+                <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                <li class="page-item"><a class="page-link" href="#">2</a></li>
+                <li class="page-item"><a class="page-link" href="#">3</a></li>
+                <li class="page-item"><a class="page-link" href="#">Next</a></li>
+              </ul>
+            </nav>
+          </div>
+        </div>
+
+        <!-- ADD / EDIT FORM -->
+        <div class="card">
+          <div class="card-header">
+            <h5 class="mb-0 fw-bold" style="color: var(--text-primary);">
+              <i class="bi bi-pencil-square me-2 text-gradient"></i>Add / Edit Student
+            </h5>
+          </div>
+          <div class="card-body">
+            <form>
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label for="studentName" class="form-label">Full Name <span class="text-danger">*</span></label>
+                  <input type="text" class="form-control" id="studentName" placeholder="e.g. Maria Santos" required>
+                </div>
+                <div class="col-md-6">
+                  <label for="studentId" class="form-label">Student ID <span class="text-danger">*</span></label>
+                  <input type="text" class="form-control" id="studentId" placeholder="e.g. 2026-007" required>
+                </div>
+                <div class="col-md-6">
+                  <label for="studentCourse" class="form-label">Course</label>
+                  <select id="studentCourse" class="form-select">
+                    <option selected disabled>Choose course…</option>
+                    <option>Computer Science</option>
+                    <option>Business Admin</option>
+                    <option>Engineering</option>
+                    <option>Nursing</option>
+                  </select>
+                </div>
+                <div class="col-md-6">
+                  <label for="studentYear" class="form-label">Year Level</label>
+                  <select id="studentYear" class="form-select">
+                    <option selected disabled>Choose year…</option>
+                    <option>1st Year</option>
+                    <option>2nd Year</option>
+                    <option>3rd Year</option>
+                    <option>4th Year</option>
+                  </select>
+                </div>
+                <div class="col-md-6">
+                  <label for="enrollDate" class="form-label">Enrollment Date</label>
+                  <input type="date" class="form-control" id="enrollDate">
+                </div>
+                <div class="col-md-6">
+                  <label for="studentStatus" class="form-label">Status</label>
+                  <select id="studentStatus" class="form-select">
+                    <option selected>Active</option>
+                    <option>Inactive</option>
+                    <option>Graduated</option>
+                  </select>
+                </div>
+                <div class="col-12">
+                  <label for="remarks" class="form-label">Remarks / Notes</label>
+                  <textarea class="form-control" id="remarks" rows="3" placeholder="Optional notes about the student…"></textarea>
+                </div>
+                <div class="col-12 d-flex gap-2">
+                  <button type="submit" class="btn btn-primary px-4">
+                    <i class="bi bi-check-lg"></i> Submit
+                  </button>
+                  <button type="reset" class="btn btn-outline-secondary px-4">
+                    <i class="bi bi-x-lg"></i> Cancel
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+
+      </main>
+
+      <!-- ===== RIGHT COLUMN (2) ===== -->
+      <aside class="col-12 col-lg-2">
+        <div class="card animate-slide-right">
+          <div class="card-body p-3 text-center">
+            <h6 class="card-title fw-bold mb-3" style="color: var(--text-primary);">
+              <i class="bi bi-person-badge me-1 text-gradient"></i> Profile
+            </h6>
+            <div class="avatar-circle">FZ</div>
+            <p class="mb-0 fw-semibold" style="color: var(--text-primary); font-size: 0.95rem; line-height: 1.2;">
+              Florantine Zchary De La Calzada
+            </p>
+            <small style="color: var(--text-secondary);">Administrator</small>
+            <hr class="my-3" style="border-color: var(--border-color);">
+            <ul class="list-unstyled small text-start mb-0">
+              <li class="mb-2" style="color: var(--text-secondary);"><i class="bi bi-people me-1" style="color: var(--accent-blue);"></i> Total: <strong style="color: var(--text-primary);">128</strong></li>
+              <li class="mb-2" style="color: var(--text-secondary);"><i class="bi bi-check-circle me-1" style="color: #34d399;"></i> Active: <strong style="color: var(--text-primary);">96</strong></li>
+              <li class="mb-0" style="color: var(--text-secondary);"><i class="bi bi-calendar-check me-1" style="color: #38bdf8;"></i> Today: <strong style="color: var(--text-primary);">3</strong></li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="card mt-3">
+          <div class="card-body p-3">
+            <h6 class="card-title fw-bold mb-3" style="color: var(--text-primary);">
+              <i class="bi bi-megaphone me-1 text-gradient"></i> Announcements
+            </h6>
+            <div class="alert alert-warning py-2 px-3 small mb-2">
+              <strong>Enrollment Deadline</strong><br>
+              Submit all student records before <em>Oct 15, 2026</em>.
+            </div>
+            <div class="alert alert-info py-2 px-3 small mb-0">
+              <strong>System Update</strong><br>
+              New reporting module is now live. Check the Reports tab.
+            </div>
+          </div>
+        </div>
+
+        <div class="card mt-3">
+          <div class="card-body p-3">
+            <h6 class="card-title fw-bold mb-2" style="color: var(--text-primary);">
+              <i class="bi bi-lightbulb me-1 text-gradient"></i> Quick Tips
+            </h6>
+            <ul class="small ps-3 mb-0" style="color: var(--text-secondary);">
+              <li>Use filters to narrow down records.</li>
+              <li>Double-check IDs before saving.</li>
+              <li>Click <em>View</em> to see full details.</li>
+            </ul>
+          </div>
+        </div>
+      </aside>
+
+    </div>
+  </div>
+
+  <!-- Bootstrap 5.3 JS Bundle -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
